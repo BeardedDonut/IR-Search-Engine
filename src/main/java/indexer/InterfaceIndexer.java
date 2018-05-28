@@ -1,6 +1,7 @@
 package indexer;
 
 import java.io.FileFilter;
+import java.io.IOException;
 
 /**
  * @author navid
@@ -8,5 +9,5 @@ import java.io.FileFilter;
  *         Date: 5/28/18.
  */
 public interface InterfaceIndexer {
-    void createIndex(String pathToCorpus, FileFilter fileFilter);
+    int createIndex(String pathToCorpus, FileFilter fileFilter) throws IOException;
 }
