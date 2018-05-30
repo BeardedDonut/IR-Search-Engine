@@ -23,7 +23,7 @@ import java.io.IOException;
  *         Project-Name: IR-Search-Engine
  *         Date: 5/29/18.
  */
-public class Indexer implements InterfaceIndexer{
+public class Indexer implements IndexerInterface{
 
     public static final String SUMMARY_NAME = "summary-file-name";
     public static final String SUMMARY_CONTENT = "summary-content";
