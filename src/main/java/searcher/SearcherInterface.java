@@ -16,8 +16,14 @@ import java.io.IOException;
 public interface SearcherInterface {
     // TODO: define a proper interface
     TopDocs search(String queryString, int limit);
+
+    TopDocs search(Query query, int limit);
+
     Query generateQuery(String queryString) throws ParseException;
+
     Document getDocument(ScoreDoc scoreDoc) throws IOException;
+
     int getTermFrequency(String term, int docId) throws IOException;
+
     int gerDocumentFrequency(String term);
 }
