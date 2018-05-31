@@ -5,6 +5,7 @@ import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.search.similarities.TFIDFSimilarity;
 
 import java.io.IOException;
 
@@ -23,7 +24,5 @@ public interface SearcherInterface {
 
     Document getDocument(ScoreDoc scoreDoc) throws IOException;
 
-    int getTermFrequency(String term, int docId) throws IOException;
-
-    int gerDocumentFrequency(String term);
+    void setSimilarity(TFIDFSimilarity newSimilarity);
 }

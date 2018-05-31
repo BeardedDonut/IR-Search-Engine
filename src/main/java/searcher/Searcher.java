@@ -1,26 +1,26 @@
 package searcher;
 
+import indexer.Indexer;
 import org.apache.lucene.analysis.CharArraySet;
 import org.apache.lucene.analysis.en.EnglishAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.index.Terms;
-import org.apache.lucene.index.TermsEnum;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.search.similarities.ClassicSimilarity;
+import org.apache.lucene.search.similarities.TFIDFSimilarity;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
-import org.apache.lucene.util.BytesRef;
+import similarityCalculator.NewTFIDF;
 
+import javax.print.Doc;
 import java.io.IOException;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * @author navid
@@ -32,19 +32,25 @@ public class Searcher implements SearcherInterface {
     private QueryParser queryParser;
     private String indexDirectory;
     private String indexContentTag;
+    private TFIDFSimilarity mySimilarity;
 
-
-    private Searcher(String indexDirectoryPath, CharArraySet stopWords, String indexDirectory, String indexContentTag)
+    public Searcher(CharArraySet stopWords, String indexDirectory, String indexContentTag, TFIDFSimilarity newSimilarity)
             throws IOException {
         this.indexDirectory = indexDirectory;
         this.indexContentTag = indexContentTag;
+        this.mySimilarity = newSimilarity;
 
         Directory indexDir = FSDirectory.open(Paths.get(indexDirectory));
         IndexReader indexReader = DirectoryReader.open(indexDir);
 
         indexSearcher = new IndexSearcher(indexReader);
+        indexSearcher.setSimilarity(this.mySimilarity);
 
         queryParser = new QueryParser(indexContentTag, new EnglishAnalyzer(stopWords));
+    }
+
+    public Searcher(CharArraySet stopWords, String indexDirectory, String indexContentTag) throws IOException {
+        this(stopWords, indexDirectory, indexContentTag, new ClassicSimilarity());
     }
 
     @Override
@@ -71,31 +77,6 @@ public class Searcher implements SearcherInterface {
         return null;
     }
 
-    @Override
-    public int getTermFrequency(String term, int docId) throws IOException {
-        Directory indexDir = FSDirectory.open(Paths.get(this.indexDirectory));
-        IndexReader indexReader = DirectoryReader.open(indexDir);
-
-        Terms vector = indexReader.getTermVector(docId, this.indexContentTag);
-        TermsEnum termsEnum = vector.iterator();
-        Map<String, Integer> frequencies = new HashMap<String, Integer>();
-        BytesRef text = null;
-
-        try {
-            term = generateQuery(term).toString(this.indexContentTag);
-
-            while ((text = termsEnum.next()) != null) {
-                String tempTerm = text.utf8ToString();
-                if (tempTerm.equals(term)) {
-                    return (int) termsEnum.totalTermFreq();
-                }
-            }
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-
-        return 0;
-    }
 
     @Override
     public Query generateQuery(String queryString) throws ParseException {
@@ -108,7 +89,20 @@ public class Searcher implements SearcherInterface {
     }
 
     @Override
-    public int gerDocumentFrequency(String term) {
-        return 0;
+    public void setSimilarity(TFIDFSimilarity newSimilarity) {
+        this.mySimilarity = newSimilarity;
+    }
+
+    public static void main(String[] args) throws IOException { // TODO: remove the code below its just for test
+        Searcher mySearcher = new Searcher(CharArraySet.EMPTY_SET, "./indexes/","summary-content", new NewTFIDF());
+        TopDocs x = mySearcher.search("program comput procedur ground terminolog engin", 100);
+        System.out.println(x.totalHits);
+
+        if (x.totalHits > 0) {
+            for(ScoreDoc scoreDoc: x.scoreDocs) {
+                Document d = mySearcher.getDocument(scoreDoc);
+                System.out.println("scoreDoc: doc-id:" + d.getField(Indexer.SUMMARY_NAME).stringValue() + ", score: " + scoreDoc.score);
+            }
+        }
     }
 }
