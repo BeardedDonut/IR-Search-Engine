@@ -3,9 +3,18 @@ import com.diogonunes.jcdp.color.api.Ansi;
 import corpusDecomposer.TCCorpusDecomposer;
 import fileFilter.TextFileFilter;
 import indexer.Indexer;
+import org.apache.lucene.analysis.CharArraySet;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.document.Document;
+import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.TopDocs;
+import searcher.Searcher;
+import similarityCalculator.NewTFIDF;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 /**
@@ -18,22 +27,45 @@ public class Main {
     public static final String INDEX_DIRECTORY = "./indexes/";
     public static final String SOURCE_SUMMARY_FILE_PATH = "./resources/tccorpus.txt";
 
-    private static ColoredPrinter cp = new ColoredPrinter.Builder(1, false)
-            .build();
+    private static ColoredPrinter cp = new ColoredPrinter.Builder(1, false).build();
 
-    private static void printError(String msg) {
-        cp.print(msg + "\n", Ansi.Attribute.BOLD, Ansi.FColor.RED, Ansi.BColor.NONE);
-        cp.clear();
+    private static Searcher mySearcher;
+    private static Indexer idx;
+
+
+    public static void main(String[] args) {
+        init();
     }
 
-    private static void printSuccess(String msg) {
-        cp.print(msg + "\n", Ansi.Attribute.BOLD, Ansi.FColor.GREEN, Ansi.BColor.NONE);
-        cp.clear();
+    private static void init() {
+        printInfo("Small Search Engine Application- by Navid Alipour");
+        Scanner sc = new Scanner(System.in);
+        boolean isApplicationOn = true;
+
+        while (isApplicationOn) {
+            printInfo("Please Enter Your Command (enter 'help' for more info)");
+            String line = sc.nextLine();
+            isApplicationOn = execute(line);
+        }
     }
 
-    private static void printInfo(String msg) {
-        cp.print(msg + "\n", Ansi.Attribute.BOLD, Ansi.FColor.CYAN, Ansi.BColor.NONE);
-        cp.clear();
+    private static boolean execute(String command) {
+        String[] parsedString = command.split(" ");
+        String baseCommand = parsedString[0].toLowerCase();
+
+        if (baseCommand.equals("indexer")) {
+            createIndexes(parsedString[1], parsedString[2]);
+        } else if (baseCommand.equals("decompose")) {
+            decomposeCorpusFile(parsedString[1], parsedString[2]);
+        } else if (baseCommand.equals("newtfidf")) {
+            printQueryResultList(search(parsedString[1], parsedString[2], Integer.parseInt(parsedString[3])));
+        } else if (baseCommand.equals("help")) {
+            // TODO: implement help
+        } else if (baseCommand.equals("quit")) {
+            return false;
+        }
+
+        return true;
     }
 
     private static void createIndexes(String pathToDocuments, String pathToSaveIndexes) {
@@ -47,7 +79,7 @@ public class Main {
         }
 
         try {
-            Indexer idx = new Indexer(pathToSaveIndexes, new StandardAnalyzer());
+            idx = new Indexer(pathToSaveIndexes, new StandardAnalyzer());
             idx.createIndex(pathToDocuments, new TextFileFilter());
             idx.close();
 
@@ -76,40 +108,88 @@ public class Main {
         printSuccess(n + " documents are created at [" + pathToSaveDecompositionRes + "] successfully.");
     }
 
-    private static boolean execute(String command) {
-        String[] parsedString = command.split(" ");
-        String baseCommand = parsedString[0].toLowerCase();
+    public static ArrayList<QueryResult> search(String pathToIndexFiles, String pathToQueryFile, int limit) {
 
-        if (baseCommand.equals("indexer")) {
-            createIndexes(parsedString[1], parsedString[2]);
-        } else if (baseCommand.equals("decompose")) {
-            decomposeCorpusFile(parsedString[1], parsedString[2]);
-        } else if (baseCommand.equals("query_id")) {
-            // TODO: implement query with query_id
-        } else if (baseCommand.equals("query")) {
-            // TODO: implement query
-        } else if (baseCommand.equals("help")) {
-            // TODO: implement help
-        } else if (baseCommand.equals("quit")) {
-            return false;
+        ArrayList<QueryResult> qResList = new ArrayList<>();
+
+        boolean cond = pathToIndexFiles != null
+                && pathToQueryFile != null
+                && limit > 0
+                && !pathToIndexFiles.toLowerCase().trim().equals("")
+                && !pathToQueryFile.toLowerCase().trim().equals("");
+
+        if(cond) {
+            try {
+                mySearcher = new Searcher(CharArraySet.EMPTY_SET, pathToIndexFiles, Indexer.SUMMARY_CONTENT, new NewTFIDF());
+
+                FileReader fileReader = new FileReader(pathToQueryFile);
+                BufferedReader bfr = new BufferedReader(fileReader);
+                String queryString = bfr.readLine();
+                int queryId = 1;
+
+
+                while (queryString != null) {
+                    TopDocs tpDocs = mySearcher.search(queryString, limit);
+
+                    if(tpDocs.totalHits == 0) {
+                        continue;
+                    }
+                    int rank = 1;
+
+                    for(ScoreDoc scoreDoc: tpDocs.scoreDocs) {
+                        Document doc = mySearcher.getDocument(scoreDoc);
+                        String docName = doc.getField(Indexer.SUMMARY_NAME).stringValue();
+
+                        QueryResult newQRes = new QueryResult(docName, queryString, scoreDoc.score, rank, queryId);
+                        qResList.add(newQRes);
+
+                        rank++;
+                    }
+
+                    queryString = bfr.readLine();
+                    queryId++;
+                }
+
+            } catch (IOException e) {
+                printError("Oops Something went wrong!");
+                e.printStackTrace();
+            }
         }
 
-        return true;
+        return qResList;
     }
 
-    public static void init() {
-        printInfo("Small Search Engine Application- by Navid Alipour");
-        Scanner sc = new Scanner(System.in);
-        boolean isApplicationOn = true;
-
-        while (isApplicationOn) {
-            printInfo("Please Enter Your Command (enter 'help' for more info)");
-            String line = sc.nextLine();
-            isApplicationOn = execute(line);
+    private static void printQueryResultList(ArrayList<QueryResult> queryResults) {
+        if (queryResults.size() == 0) {
+            printError("No Query Results!");
+            return;
         }
+
+        for(QueryResult qr: queryResults) {
+            StringBuilder x = new StringBuilder();
+            x.append("query_id: ").append(qr.getQueryId()).append("\t");
+            x.append("doc_id: ").append(qr.getDocumentName()).append("\t");
+            x.append("rank: ").append(qr.getRank()).append("\t");
+            x.append("score: ").append(qr.getSimScore()).append("\t");
+
+            printInfo(x.toString());
+        }
+
     }
 
-    public static void main(String[] args) {
-        init();
+
+    private static void printError(String msg) {
+        cp.print(msg + "\n", Ansi.Attribute.BOLD, Ansi.FColor.RED, Ansi.BColor.NONE);
+        cp.clear();
+    }
+
+    private static void printSuccess(String msg) {
+        cp.print(msg + "\n", Ansi.Attribute.BOLD, Ansi.FColor.GREEN, Ansi.BColor.NONE);
+        cp.clear();
+    }
+
+    private static void printInfo(String msg) {
+        cp.print(msg + "\n", Ansi.Attribute.BOLD, Ansi.FColor.CYAN, Ansi.BColor.NONE);
+        cp.clear();
     }
 }

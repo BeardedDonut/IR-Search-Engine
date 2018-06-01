@@ -9,12 +9,14 @@ public class QueryResult {
 
     float simScore;
     int rank;
+    int queryId;
 
-    public QueryResult(String documentName, String query, float simScore, int rank) {
+    public QueryResult(String documentName, String query, float simScore, int rank, int queryId) {
         this.documentName = documentName;
         this.query = query;
         this.simScore = simScore;
         this.rank = rank;
+        this.queryId = queryId;
     }
 
     public String getDocumentName() {
@@ -47,5 +49,13 @@ public class QueryResult {
 
     public void setRank(int rank) {
         this.rank = rank;
+    }
+
+    public int getQueryId() {
+        return queryId;
+    }
+
+    public void setQueryId(int queryId) {
+        this.queryId = queryId;
     }
 }
