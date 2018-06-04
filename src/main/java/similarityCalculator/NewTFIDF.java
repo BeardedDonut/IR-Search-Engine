@@ -11,11 +11,12 @@ public class NewTFIDF extends ClassicSimilarity {
 
     @Override
     public float tf(float freq) {
-        return (float)Math.sqrt((double)freq);
+        return (float)( 1.0D + Math.log(freq));
     }
 
     @Override
     public float idf(long docFreq, long docCount) {
-        return (float)(Math.log((double)(docCount + 1L) / (double)(docFreq + 1L)) + 1.0D);
+        System.out.println(docFreq + ", " + docCount);
+        return (float)(Math.log((double)(docCount) / (double)(docFreq)));
     }
 }
