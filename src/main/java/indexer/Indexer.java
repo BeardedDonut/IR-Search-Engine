@@ -122,14 +122,4 @@ public class Indexer implements IndexerInterface{
 
         return writer.numDocs();
     }
-
-    public static void main(String[] args) { // TODO: remove the code below its just for test
-        try {
-            Indexer test = new Indexer("./indexes/", new EnglishAnalyzer());
-            test.createIndex("./decomposedCorpus/", new TextFileFilter());
-            test.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
 }

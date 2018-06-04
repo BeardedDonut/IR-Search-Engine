@@ -60,7 +60,7 @@ public class Main {
         } else if (baseCommand.equals("newtfidf")) {
             printQueryResultList(search(parsedString[1], parsedString[2], Integer.parseInt(parsedString[3])));
         } else if (baseCommand.equals("help")) {
-            // TODO: implement help
+            printHelp();
         } else if (baseCommand.equals("quit")) {
             return false;
         }
@@ -174,8 +174,25 @@ public class Main {
 
             printInfo(x.toString());
         }
-
     }
+
+    private static void printHelp() {
+        StringBuilder x = new StringBuilder();
+
+        x.append("Creating Indexes:\n\tindexer <path-to-documents> <path-to-save-index-results> \n");
+        x.append("Example:\n\tindexer ./decomposedCorpus/ ./indexes/\n\n");
+
+        x.append("Decompose Corpus: \n\tdecompose <path-to-corpus-file> <path-to-save-decomposition-result>\n");
+        x.append("Example: \n\tdecompose ./resources/tccorpus.txt ./decomposedCorpus/\n\n");
+
+        x.append("Run TF-IDF algorithm: \n\tnewtfidf <path-to-index-files> <path-to-query-file> <limit>\n");
+        x.append("Example: \n\tnewtfidf ./inedexes/ ./resources/queries.txt 100\n\n");
+
+        x.append("Terminate The Program: \n\tquit\n");
+
+        printSuccess(x.toString());
+    }
+
 
 
     private static void printError(String msg) {

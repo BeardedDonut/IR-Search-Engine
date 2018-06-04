@@ -92,17 +92,4 @@ public class Searcher implements SearcherInterface {
     public void setSimilarity(TFIDFSimilarity newSimilarity) {
         this.mySimilarity = newSimilarity;
     }
-
-    public static void main(String[] args) throws IOException { // TODO: remove the code below its just for test
-        Searcher mySearcher = new Searcher(CharArraySet.EMPTY_SET, "./indexes/","summary-content", new NewTFIDF());
-        TopDocs x = mySearcher.search("program comput procedur ground terminolog engin", 100);
-        System.out.println(x.totalHits);
-
-        if (x.totalHits > 0) {
-            for(ScoreDoc scoreDoc: x.scoreDocs) {
-                Document d = mySearcher.getDocument(scoreDoc);
-                System.out.println("scoreDoc: doc-id:" + d.getField(Indexer.SUMMARY_NAME).stringValue() + ", score: " + scoreDoc.score);
-            }
-        }
-    }
 }

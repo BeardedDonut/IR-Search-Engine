@@ -41,7 +41,7 @@ public class TCCorpusDecomposer {
             return -1;
         }
 
-        while (line != null && docNumber < 1000) { // TODO: remove the doc limit its just for test
+        while (line != null) { // TODO: remove the doc limit its just for test
 
             if (line.charAt(0) == '#') {
                 PrintWriter writer = new PrintWriter(pathToSaveResult + "/" + docNumber + ".txt", "UTF-8");
@@ -58,9 +58,5 @@ public class TCCorpusDecomposer {
             }
         }
         return docNumber;
-    }
-
-    public static void main(String[] args) {
-        startDecomposition("./resources/tccorpus.txt", "decomposedCorpus");
     }
 }
