@@ -32,7 +32,6 @@ public class Main {
     private static Searcher mySearcher;
     private static Indexer idx;
 
-
     public static void main(String[] args) {
         init();
     }

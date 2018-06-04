@@ -1,7 +1,5 @@
 package similarityCalculator;
 
-import org.apache.lucene.search.similarities.ClassicSimilarity;
-
 /**
  * @author navid
  *         Project-Name: IR-Search-Engine
@@ -11,7 +9,7 @@ import org.apache.lucene.search.similarities.ClassicSimilarity;
  *      - squareroot of termfrequency as the TF measurement
  *      - "prob idf" for DF
  */
-public class NewTFIDF extends ClassicSimilarity {
+public class NewTFIDF extends BaseTFIDFScoringStrategy {
 
     @Override
     public float tf(float freq) {
@@ -20,8 +18,6 @@ public class NewTFIDF extends ClassicSimilarity {
 
     @Override
     public float idf(long docFreq, long docCount) {
-        System.out.println(docFreq + ", " + docCount);
-
         double a = ((double)(docCount) - (double)(docFreq));
         double b = (double)(docFreq);
 
