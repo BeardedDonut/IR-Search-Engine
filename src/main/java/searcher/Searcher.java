@@ -56,10 +56,12 @@ public class Searcher implements SearcherInterface {
     @Override
     public TopDocs search(String queryString, int limit) {
 
+        Query query = null;
+
         try {
-            Query query = this.generateQuery(queryString);
-            return this.indexSearcher.search(query, 10);
-        } catch (IOException | ParseException e) {
+            query = this.generateQuery(queryString);
+            return this.search(query, limit);
+        } catch (ParseException e) {
             e.printStackTrace();
         }
 
