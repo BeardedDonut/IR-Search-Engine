@@ -131,6 +131,9 @@ public class Main {
                     TopDocs tpDocs = mySearcher.search(queryString, limit);
 
                     if(tpDocs.totalHits == 0) {
+                        queryString = bfr.readLine();
+                        queryId++;
+
                         continue;
                     }
                     int rank = 1;
@@ -138,6 +141,10 @@ public class Main {
                     for(ScoreDoc scoreDoc: tpDocs.scoreDocs) {
                         Document doc = mySearcher.getDocument(scoreDoc);
                         String docName = doc.getField(Indexer.SUMMARY_NAME).stringValue();
+
+                        if (scoreDoc.score == 0.0000f) {
+                            continue;
+                        }
 
                         QueryResult newQRes = new QueryResult(docName, queryString, scoreDoc.score, rank, queryId);
                         qResList.add(newQRes);

@@ -30,14 +30,10 @@ import java.nio.file.Paths;
 public class Searcher implements SearcherInterface {
     private IndexSearcher indexSearcher;
     private QueryParser queryParser;
-    private String indexDirectory;
-    private String indexContentTag;
     private TFIDFSimilarity mySimilarity;
 
     public Searcher(CharArraySet stopWords, String indexDirectory, String indexContentTag, TFIDFSimilarity newSimilarity)
             throws IOException {
-        this.indexDirectory = indexDirectory;
-        this.indexContentTag = indexContentTag;
         this.mySimilarity = newSimilarity;
 
         Directory indexDir = FSDirectory.open(Paths.get(indexDirectory));

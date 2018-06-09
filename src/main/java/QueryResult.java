@@ -4,12 +4,12 @@
  *         Date: 5/31/18.
  */
 public class QueryResult {
-    String documentName;
-    String query;
+    private String documentName;
+    private String query;
 
-    float simScore;
-    int rank;
-    int queryId;
+    private float simScore;
+    private int rank;
+    private int queryId;
 
     public QueryResult(String documentName, String query, float simScore, int rank, int queryId) {
         this.documentName = documentName;
